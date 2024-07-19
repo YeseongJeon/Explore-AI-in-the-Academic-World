@@ -1,5 +1,5 @@
-# Ning_Yeseong
-# Name of Your Application
+# Dashboard for AI Research
+## Yeseong Jeon and Ning Liu
 
 ## Purpose
 **Application Scenario**: Describe the scenario your application is addressing.
