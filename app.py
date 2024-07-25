@@ -1,7 +1,6 @@
 # Run this app with `python app.py` and
 # visit http://127.0.0.1:8050/ in your web browser.
 
-
 from dash import Dash, html, dcc, Output, Input
 import plotly.express as px
 import pandas as pd
@@ -10,13 +9,12 @@ import socket
 
 app = Dash(__name__)
 
-db = MySQLClient(host="127.0.0.1", user="root", password="password", database="academicworld")
+db = MySQLClient(host="127.0.0.1", user="root", password="dP2574819tjd", database="academicworld")
 db.connect()
 widget1_results = db.fetch_widget1_results()
 db.disconnect()
 
-# DataFrame for widget 1
-widget1_df = pd.DataFrame(widget1_results, columns=["Keywords", "Count"])
+widget1_df = pd.DataFrame(widget1_results, columns=["Keywords", "Count"]) # DataFrame for widget 1 graph
 
 widget1_fig = px.bar(widget1_df, x="Keywords", y="Count", color="Keywords", barmode="group")
 
@@ -28,24 +26,15 @@ widget1_fig.update_layout(
 )
 
 widget2_dropdown_options = [ #dropdown menu values for widget 2
-    {"label": "Artificial intelligence", "value": "ai"},
-    {"label": "Computer vision", "value": "cv"},
-    {"label": "Natural language processing", "value": "nlp"},
-    {"label": "Machine learning", "value": "ml"},
-    {"label": "Information retrieval", "value": "ir"},
+    {"label": "Artificial intelligence", "value": "Artificial intelligence"},
+    {"label": "Computer vision", "value": "Computer vision"},
+    {"label": "Natural language processing", "value": "Natural language processing"},
+    {"label": "Machine learning", "value": "Machine learning"},
+    {"label": "Information retrieval", "value": "Information retrieval"},
 ]
-  
-widget2_professors = { ######### Needs to be modified #########
-    'ai': ['Prof. A1', 'Prof. A2', 'Prof. A3', 'Prof. A4', 'Prof. A5'],
-    'cv': ['Prof. B1', 'Prof. B2', 'Prof. B3', 'Prof. B4', 'Prof. B5'],
-    'nlp': ['Prof. C1', 'Prof. C2', 'Prof. C3', 'Prof. C4', 'Prof. C5'],
-    'ml': ['Prof. D1', 'Prof. D2', 'Prof. D3', 'Prof. D4', 'Prof. D5'],
-    'ir': ['Prof. E1', 'Prof. E2', 'Prof. E3', 'Prof. E4', 'Prof. E5'],
-}
-
 
 app.layout = html.Div(children=[
- #-------------------------------------------- Header --------------------------------------------
+ #-------------------------------------------------------------- Header ----------------------------------------------------------------
     html.H1(children='Explore AI in Academic World',
             style={
             'textAlign': 'center',
@@ -82,7 +71,7 @@ app.layout = html.Div(children=[
             dcc.Dropdown(  # dropdown menu for the widget 2
                 id='professor-dropdown',
                 options=widget2_dropdown_options,
-                value='ai',  # Default value
+                value='Artificial intelligence',  # Default value
                 style={
                     'width': '80%',
                     'margin': '0 auto'
@@ -110,7 +99,7 @@ app.layout = html.Div(children=[
 
     ], style={'display': 'flex', 'flexDirection': 'row'}),
 
- #-------------------------------------------- Container for widget 4 & widget 5 & widget 6 (Need to be modified) --------------------------------------------
+ #--------------------------------- Container for widget 4 & widget 5 & widget 6 (Need to be modified) ---------------------------------
     html.Div(children=[ 
 
         html.Div(children=[ # Widget 4
@@ -160,14 +149,18 @@ app.layout = html.Div(children=[
     ], style={'display': 'flex', 'flexDirection': 'row'})
 
 ])
- #-------------------------------------------- CallBacks --------------------------------------------
+ #---------------------------------------------------------- CallBacks -----------------------------------------------------------------
 @app.callback(
     Output('professor-list', 'children'),
     Input('professor-dropdown', 'value')
 )
 def update_professor_list(selected_keyword):
-    if selected_keyword:
-        return html.Ul([html.Li(prof) for prof in widget2_professors[selected_keyword]])
+    db.connect()
+    professor_results = db.fetch_widget2_results(selected_keyword)
+    db.disconnect()
+    
+    if professor_results:
+        return html.Ul([html.Li(prof[0]) for prof in professor_results])
     return "No professors available for the selected keyword."
 
 def find_free_port(start_port=8050): # Finds the free port
@@ -184,18 +177,3 @@ if __name__ == '__main__':
 # Ensure the database disconnects when the app stops running
 import atexit
 atexit.register(db.disconnect)
-
-import dash
-from dash import html
-
-# Initialize the Dash app
-app = dash.Dash(__name__)
-
-# Layout of the Dash app
-app.layout = html.Div([
-    html.H1('Hello, World!')
-])
-
-# Run the Dash app
-if __name__ == '__main__':
-    app.run_server(debug=True)
