@@ -6,10 +6,11 @@ from dash import Dash, html, dcc, Output, Input
 import plotly.express as px
 import pandas as pd
 from mysql_utils import MySQLClient
+import socket
 
 app = Dash(__name__)
 
-db = MySQLClient(host="127.0.0.1", user="root", password="password", database="academicworld")
+db = MySQLClient(host="127.0.0.1", user="root", password="dP2574819tjd", database="academicworld")
 db.connect()
 widget1_results = db.fetch_widget1_results()
 db.disconnect()
@@ -109,7 +110,7 @@ app.layout = html.Div(children=[
 
     ], style={'display': 'flex', 'flexDirection': 'row'}),
 
- #-------------------------------------------- Container for widget 4 & widget 5 & widget 6 --------------------------------------------
+ #-------------------------------------------- Container for widget 4 & widget 5 & widget 6 (Need to be modified) --------------------------------------------
     html.Div(children=[ 
 
         html.Div(children=[ # Widget 4
@@ -169,8 +170,16 @@ def update_professor_list(selected_keyword):
         return html.Ul([html.Li(prof) for prof in widget2_professors[selected_keyword]])
     return "No professors available for the selected keyword."
 
+def find_free_port(start_port=8050): # Finds the free port
+    port = start_port
+    while True:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            if s.connect_ex(('localhost', port)) != 0:
+                return port
+            port += 1
+
 if __name__ == '__main__':
-    app.run_server(debug=True, port=8051)
+    app.run_server(debug=True, port=find_free_port())
 
 # Ensure the database disconnects when the app stops running
 import atexit
