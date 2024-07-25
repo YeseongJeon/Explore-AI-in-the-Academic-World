@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Run this app with `python app.py` and
 # visit http://127.0.0.1:8050/ in your web browser.
 
@@ -184,3 +185,19 @@ if __name__ == '__main__':
 # Ensure the database disconnects when the app stops running
 import atexit
 atexit.register(db.disconnect)
+=======
+import dash
+from dash import html
+
+# Initialize the Dash app
+app = dash.Dash(__name__)
+
+# Layout of the Dash app
+app.layout = html.Div([
+    html.H1('Hello, World!')
+])
+
+# Run the Dash app
+if __name__ == '__main__':
+    app.run_server(debug=True)
+>>>>>>> origin/main

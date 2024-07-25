@@ -60,6 +60,7 @@ class MySQLClient:
             if cursor is not None:
                 cursor.close()
         return results
+<<<<<<< HEAD
     
     def fetch_widget1_results(self):
         query = '''
@@ -81,3 +82,25 @@ class MySQLClient:
         return self.fetch_results(query)
            
 
+=======
+        
+        
+        
+
+# Test MySQL Client
+if __name__ == "__main__":
+    # Create a MySQL client
+    db = MySQLClient(host="127.0.0.1", user="root", password="test_root", database="academicworld")
+    db.connect()
+    
+    # Sample query
+    results = db.fetch_results('''
+    SELECT COUNT(*)
+    FROM faculty
+    WHERE position = 'Assistant Professor';
+    ''')
+    print(results)
+    
+    # Disconnect db
+    db.disconnect()
+>>>>>>> origin/main
