@@ -9,7 +9,7 @@ import socket
 
 app = Dash(__name__)
 
-db = MySQLClient(host="127.0.0.1", user="root", password="dP2574819tjd", database="academicworld")
+db = MySQLClient(host="127.0.0.1", user="root", password="password", database="academicworld")
 db.connect()
 widget1_results = db.fetch_widget1_results()
 db.disconnect()
