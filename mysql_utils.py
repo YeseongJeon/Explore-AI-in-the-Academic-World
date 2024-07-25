@@ -60,7 +60,6 @@ class MySQLClient:
             if cursor is not None:
                 cursor.close()
         return results
-<<<<<<< HEAD
     
     def fetch_widget1_results(self):
         query = '''
@@ -80,12 +79,6 @@ class MySQLClient:
             LIMIT 10;
         '''
         return self.fetch_results(query)
-           
-
-=======
-        
-        
-        
 
 # Test MySQL Client
 if __name__ == "__main__":
@@ -103,4 +96,3 @@ if __name__ == "__main__":
     
     # Disconnect db
     db.disconnect()
->>>>>>> origin/main
