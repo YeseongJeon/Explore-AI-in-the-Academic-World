@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Run this app with `python app.py` and
 # visit http://127.0.0.1:8050/ in your web browser.
 
@@ -11,7 +10,7 @@ import socket
 
 app = Dash(__name__)
 
-db = MySQLClient(host="127.0.0.1", user="root", password="dP2574819tjd", database="academicworld")
+db = MySQLClient(host="127.0.0.1", user="root", password="password", database="academicworld")
 db.connect()
 widget1_results = db.fetch_widget1_results()
 db.disconnect()
@@ -185,7 +184,7 @@ if __name__ == '__main__':
 # Ensure the database disconnects when the app stops running
 import atexit
 atexit.register(db.disconnect)
-=======
+
 import dash
 from dash import html
 
@@ -200,4 +199,3 @@ app.layout = html.Div([
 # Run the Dash app
 if __name__ == '__main__':
     app.run_server(debug=True)
->>>>>>> origin/main
