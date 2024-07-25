@@ -60,23 +60,37 @@ class MySQLClient:
             if cursor is not None:
                 cursor.close()
         return results
-        
-        
-        
-
-# Test MySQL Client
-if __name__ == "__main__":
-    # Create a MySQL client
-    db = MySQLClient(host="127.0.0.1", user="root", password="test_root", database="academicworld")
-    db.connect()
     
-    # Sample query
-    results = db.fetch_results('''
-    SELECT COUNT(*)
-    FROM faculty
-    WHERE position = 'Assistant Professor';
-    ''')
-    print(results)
+    def fetch_widget1_results(self):
+        query = '''
+            SELECT name, COUNT(p.id)
+            FROM publication_keyword pk
+            JOIN keyword k ON pk.keyword_id = k.id
+            JOIN publication p ON pk.publication_id = p.id
+            WHERE name IN (
+                "Artificial intelligence",
+                "Computer vision",
+                "Natural language processing",
+                "Machine learning",
+                "Information retrieval"
+            )
+            GROUP BY k.name
+            ORDER BY k.name ASC
+            LIMIT 10;
+        '''
+        return self.fetch_results(query)
     
-    # Disconnect db
-    db.disconnect()
+    def fetch_widget2_results(self, keyword):
+        query = f'''
+            SELECT f.name, SUM(pk.score * p.num_citations) AS KRC
+            FROM faculty f
+            JOIN faculty_publication fp ON f.id = fp.faculty_id
+            JOIN publication p ON fp.publication_id = p.id
+            JOIN publication_keyword pk ON p.id = pk.publication_id
+            JOIN keyword k ON pk.keyword_id = k.id
+            WHERE k.name = "{keyword}"
+            GROUP BY f.name
+            ORDER BY KRC DESC
+            LIMIT 5;
+        '''
+        return self.fetch_results(query)
