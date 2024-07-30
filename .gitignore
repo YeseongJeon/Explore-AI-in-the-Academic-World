@@ -1,0 +1,11 @@
+# Ignore all .log files
+*.log
+
+# Ignore a directory
+__pycache__/
+
+# Ignore .env file
+.env
+
+# Ignore all files ending with .tmp
+*.tmp
