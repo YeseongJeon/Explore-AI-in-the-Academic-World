@@ -1,6 +1,7 @@
 import mysql.connector
 from mysql.connector import Error
 
+
 class MySQLClient:
     def __init__(self, host, user, password, database):
         self.host = host
@@ -8,7 +9,7 @@ class MySQLClient:
         self.password = password
         self.database = database
         self.connection = None
-    
+
     def connect(self):
         try:
             self.connection = mysql.connector.connect(
@@ -60,7 +61,7 @@ class MySQLClient:
             if cursor is not None:
                 cursor.close()
         return results
-    
+
     def fetch_widget1_results(self):
         query = '''
             SELECT name, COUNT(p.id)
@@ -79,8 +80,17 @@ class MySQLClient:
             LIMIT 10;
         '''
         return self.fetch_results(query)
-    
-    def fetch_widget2_results(self, keyword):
+
+    def fetch_widget2_universities(self):
+        query = '''
+            SELECT DISTINCT u.name, u.id
+            FROM university u
+            JOIN faculty f ON u.id = f.university_id
+            ORDER BY CASE WHEN u.id = 12 THEN 1 ELSE 0 END DESC;
+        '''
+        return self.fetch_results(query)
+
+    def fetch_widget2_results(self, keyword, university):
         query = f'''
             SELECT f.name, SUM(pk.score * p.num_citations) AS KRC
             FROM faculty f
@@ -88,7 +98,8 @@ class MySQLClient:
             JOIN publication p ON fp.publication_id = p.id
             JOIN publication_keyword pk ON p.id = pk.publication_id
             JOIN keyword k ON pk.keyword_id = k.id
-            WHERE k.name = "{keyword}"
+            JOIN university u ON f.university_id = u.id
+            WHERE k.name = "{keyword}" AND u.name = "{university}"
             GROUP BY f.name
             ORDER BY KRC DESC
             LIMIT 5;
