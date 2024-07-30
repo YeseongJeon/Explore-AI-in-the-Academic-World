@@ -1,9 +1,7 @@
 # Run this app with `python app.py` and
 # visit http://127.0.0.1:8050/ in your web browser.
 
-import atexit
-from dash import Dash, html, dcc, Output, Input
-import dash
+import atexit, dash
 from dash import Dash, html, dcc, Output, Input, State
 import plotly.express as px
 import pandas as pd
@@ -14,8 +12,6 @@ import socket
 
 app = Dash(__name__)
 
-db = MySQLClient(host="127.0.0.1", user="root",
-                 password="password", database="academicworld")
 mongodb = MongoDBClient(host="127.0.0.1", port=27017, database_name="academicworld")
 mongodb.connect()
 
@@ -47,7 +43,6 @@ widget1_fig.update_layout(
 )
 
 widget2_dropdown_options = [  # dropdown menu values for widget 2
-keyword_dropdown_options = [
     {"label": "Artificial intelligence", "value": "Artificial intelligence"},
     {"label": "Computer vision", "value": "Computer vision"},
     {"label": "Natural language processing", "value": "Natural language processing"},
@@ -110,8 +105,8 @@ app.layout = html.Div(children=[
                 }
             ),
             dcc.Dropdown(  # dropdown subject menu for the widget 2
-                id='professor-dropdown',
-                options=keyword_dropdown_options,
+                id='subject-dropdown',
+                options=widget2_dropdown_options,
                 value='Artificial intelligence',  # Default value
                 style={
                     'width': '80%',
@@ -137,8 +132,8 @@ app.layout = html.Div(children=[
 
     ], style={'display': 'flex', 'flexDirection': 'row'}),
 
- #--------------------------------- Container for widget 4 & widget 5 & widget 6 ---------------------------------
-    html.Div(children=[ 
+ #--------------------------------- Container for widget 4 & widget 5 ---------------------------------
+    html.Div(children=[
         # Widget 4: University Ranking by Key Publications
         html.Div(children=[ 
             html.Div(children='''Unversity Ranking by Key Publications''', # title for the widget 4
@@ -149,7 +144,7 @@ app.layout = html.Div(children=[
             ),
             dcc.Dropdown(
                 id='ranking-dropdown',
-                options=keyword_dropdown_options,
+                options=widget2_dropdown_options,
                 value='Artificial intelligence',
                 style={
                     'width': '80%',
@@ -162,16 +157,6 @@ app.layout = html.Div(children=[
             )
         ], style={'flex': 1, 'padding': '10px'}),
 
-        html.Div(children=[  # Widget 5
-            html.Div(children='''Show the trend of keywords related to AI over the years''',  # title for the widget 5
-                     style={
-                         'textAlign': 'center',
-                         'color': '#7FDBFF'
-                     }
-                     ),
-
-            dcc.Graph(  # graph for the widget 5
-                id='example-graph',
         # Widget 5
         html.Div(children=[ 
             html.Div(children='''Show the trend of keywords related to AI over the years''', # title for the widget 5
@@ -232,18 +217,13 @@ app.layout = html.Div(children=[
 
 @app.callback(
     Output('professor-list', 'children'),
-    [Input('professor-dropdown', 'value'),
+    [Input('subject-dropdown', 'value'),
      Input('university-dropdown', 'value')]
 )
-def update_professor_list(selected_keyword, selected_university,):
+def update_professor_list(selected_keyword, selected_university):
     db.connect()
     professor_results = db.fetch_widget2_results(
         selected_keyword, selected_university)
-    db.disconnect()
-
-def update_professor_list(selected_keyword):
-    professor_results = db.fetch_widget2_results(selected_keyword)
-    
     if professor_results:
         return html.Ul([html.Li(prof[0]) for prof in professor_results])
     return "No professors available for the selected keyword."
