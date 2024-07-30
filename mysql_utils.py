@@ -18,7 +18,7 @@ class MySQLClient:
                 database=self.database
             )
             if self.connection.is_connected():
-                print("Connection to academicworld db successful")
+                print("Connection to MySQL db successful")
         except Error as e:
             print(f"Error: {e}")
             self.connection = None
@@ -35,9 +35,9 @@ class MySQLClient:
                 cursor = self.connection.cursor()
                 cursor.execute(query)
                 self.connection.commit()
-                print("Query executed successfully")
+                print("MySQL query executed successfully")
             else:
-                print("Connection is not established")
+                print("MySQL connection is not established")
         except Error as e:
             print(f"Error: {e}")
         finally:
@@ -53,13 +53,55 @@ class MySQLClient:
                 cursor.execute(query)
                 results = cursor.fetchall()
             else:
-                print("Connection is not established")
+                print("MySQL connection is not established")
         except Error as e:
             print(f"Error: {e}")
         finally:
             if cursor is not None:
                 cursor.close()
         return results
+    
+    def create_procedure_favorite_university(self):
+        create_procedure_query = """
+        CREATE PROCEDURE IF NOT EXISTS recreate_favorite_university_table()
+        BEGIN
+            DROP TABLE IF EXISTS favorite_university;
+            CREATE TABLE favorite_university (
+                id INT PRIMARY KEY,
+                name VARCHAR(255)
+            );
+        END;
+        """
+        self.execute_query(create_procedure_query)
+
+    def create_procedure_favorite_paper(self):
+        create_procedure_query = """
+        CREATE PROCEDURE IF NOT EXISTS recreate_favorite_paper_table()
+        BEGIN
+            DROP TABLE IF EXISTS favorite_paper;
+            CREATE TABLE favorite_paper (
+                id INT PRIMARY KEY,
+                title VARCHAR(512),
+                year INT,
+                num_citations INT
+            );
+        END;
+        """
+        self.execute_query(create_procedure_query)
+
+    def recreate_favorite_university_table(self):
+        try:
+            self.execute_query("CALL recreate_favorite_university_table();")
+            print("Stored procedure executed successfully")
+        except Error as e:
+            print(f"Error: {e}")
+
+    def recreate_favorite_paper_table(self):
+        try:
+            self.execute_query("CALL recreate_favorite_paper_table();")
+            print("Stored procedure executed successfully")
+        except Error as e:
+            print(f"Error: {e}")
     
     def fetch_widget1_results(self):
         query = '''
@@ -94,3 +136,17 @@ class MySQLClient:
             LIMIT 5;
         '''
         return self.fetch_results(query)
+    
+# Test MongoDB Client
+if __name__ == "__main__":
+    # Create a MongoDB client
+    db = MySQLClient(host="127.0.0.1", user="root", password="test_root", database="academicworld")
+    db.connect()
+
+    df = db.get_university_info(27)[0]
+    print(df)
+
+    db.create_procedure_favorite_university()
+
+    # Disconnect db
+    db.disconnect()
