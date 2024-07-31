@@ -1,33 +1,39 @@
 # Run this app with `python app.py` and
 # visit http://127.0.0.1:8050/ in your web browser.
 
-import atexit, dash
-from dash import Dash, html, dcc, Output, Input, State
+import atexit
+import dash
+from dash import Dash, html, dcc, Output, Input, State, dash_table
 import plotly.express as px
 import pandas as pd
 from mysql_utils import MySQLClient
 from mysql.connector import Error
 from mongodb_utils import MongoDBClient
+from neo4j_utils import Neo4jClient
 import socket
 
 app = Dash(__name__)
 
-mongodb = MongoDBClient(host="127.0.0.1", port=27017, database_name="academicworld")
+neo4jdb = Neo4jClient(uri="bolt://localhost:7687",
+                      user="neo4j", password="ilovecs411")
+neo4jdb.connect()
+
+mongodb = MongoDBClient(host="127.0.0.1", port=27017,
+                        database_name="academicworld")
 mongodb.connect()
 
-db = MySQLClient(host="127.0.0.1", user="root", password="test_root", database="academicworld")
+db = MySQLClient(host="127.0.0.1", user="root",
+                 password="test_root", database="academicworld")
 db.connect()
+
 db.create_procedure_favorite_university()
 db.create_procedure_favorite_paper()
 db.recreate_favorite_university_table()
 db.recreate_favorite_paper_table()
 
-
 widget1_results = db.fetch_widget1_results()
 widget2_university_results = db.fetch_widget2_universities()
 db.disconnect()
-
-
 
 # DataFrame for widget 1 graph
 widget1_df = pd.DataFrame(widget1_results, columns=["Keywords", "Count"])
@@ -45,13 +51,23 @@ widget1_fig.update_layout(
 widget2_dropdown_options = [  # dropdown menu values for widget 2
     {"label": "Artificial intelligence", "value": "Artificial intelligence"},
     {"label": "Computer vision", "value": "Computer vision"},
-    {"label": "Natural language processing", "value": "Natural language processing"},
+    {"label": "Natural language processing",
+        "value": "Natural language processing"},
     {"label": "Machine learning", "value": "Machine learning"},
     {"label": "Information retrieval", "value": "Information retrieval"},
 ]
 
 widget2_university_dropdown_options = [  # dropdown menu values for universities
     {"label": university[0], "value": university[0]} for university in widget2_university_results
+]
+
+widget5_dropdown_options = [  # dropdown menu values for widget 5
+    {"label": "Artificial intelligence", "value": "artificial intelligence"},
+    {"label": "Computer vision", "value": "computer vision"},
+    {"label": "Natural language processing",
+        "value": "natural language processing"},
+    {"label": "Machine learning", "value": "machine learning"},
+    {"label": "Information retrieval", "value": "information retrieval"},
 ]
 
 app.layout = html.Div(children=[
@@ -82,7 +98,7 @@ app.layout = html.Div(children=[
         ], style={'flex': 1, 'padding': '10px'}),
 
         html.Div(children=[  # Widget 2
-            html.Div(children='''Top 5 professors that are relevant to the keyword “AI”''',  # title for the widget 2
+            html.Div(children='''Top 5 professors that are relevant to the keyword related to “AI”''',  # title for the widget 2
                      style={
                          'textAlign': 'center',
                          'color': '#7FDBFF'
@@ -95,8 +111,7 @@ app.layout = html.Div(children=[
 
             dcc.Dropdown(
                 id='university-dropdown',  # dropdown university menu for the widget 2
-                options=widget2_university_dropdown_options,
-                # Default value
+                options=widget2_university_dropdown_options,  # Default value
                 value=widget2_university_dropdown_options[0]['value'],
                 style={
                     'width': '80%',
@@ -132,16 +147,16 @@ app.layout = html.Div(children=[
 
     ], style={'display': 'flex', 'flexDirection': 'row'}),
 
- #--------------------------------- Container for widget 4 & widget 5 ---------------------------------
+    # --------------------------------- Container for widget 4 & widget 5 ---------------------------------
     html.Div(children=[
         # Widget 4: University Ranking by Key Publications
-        html.Div(children=[ 
-            html.Div(children='''Unversity Ranking by Key Publications''', # title for the widget 4
-            style={
-            'textAlign': 'center',
-            'color': '#7FDBFF'
-            }
-            ),
+        html.Div(children=[
+            html.Div(children='''University Ranking by Key Publications''',  # title for the widget 4
+                     style={
+                         'textAlign': 'center',
+                         'color': '#7FDBFF'
+                     }
+                     ),
             dcc.Dropdown(
                 id='ranking-dropdown',
                 options=widget2_dropdown_options,
@@ -157,35 +172,53 @@ app.layout = html.Div(children=[
             )
         ], style={'flex': 1, 'padding': '10px'}),
 
-        # Widget 5
-        html.Div(children=[ 
-            html.Div(children='''Show the trend of keywords related to AI over the years''', # title for the widget 5
-            style={
-            'textAlign': 'center',
-            'color': '#7FDBFF'
-            }
-            ),
-            
-            dcc.Graph(
-                id='example-graph-5',
-                figure=widget1_fig,
+        # Widget 5: Most Cited Publications in AI Subjects
+        html.Div(children=[
+            html.Div(children='''Most Cited Publications in AI Subjects''',  # title for the widget 5
+                     style={
+                         'textAlign': 'center',
+                         'color': '#7FDBFF'
+                     }
+                     ),
+
+            dcc.Dropdown(
+                id='widget5-subject-dropdown',
+                options=widget5_dropdown_options,
+                value='artificial intelligence',
                 style={'width': '80%', 'margin': '0 auto'}
+            ),
+            dcc.Graph(id='most-cited-publications-chart',
+                      style={'width': '80%', 'margin': '0 auto'}),
+
+            dash_table.DataTable(
+                id='publications-table',
+                columns=[
+                    {"name": "Publication ID", "id": "id"},
+                    {"name": "Title", "id": "title"}
+                ],
+                style_table={'width': '80%', 'margin': '0 auto',
+                             'marginTop': '20px'},
+                style_cell={
+                    'textAlign': 'left',
+                    'whiteSpace': 'normal'
+                }
             )
         ], style={'flex': 1, 'padding': '10px'})
     ], style={'display': 'flex', 'flexDirection': 'row'}),
 
 
-#--------------------------------- Container for widget 6 & widget 7 (Need to be modified) ---------------------------------
-    html.Div(children=[ 
+    # --------------------------------- Container for widget 6 & widget 7 (Need to be modified) ---------------------------------
+    html.Div(children=[
         # Widget 6
         html.Div(children=[
             html.Div(children='''Notepad for My Favorite Universities''',
-            style={
-            'textAlign': 'center',
-            'color': '#7FDBFF'
-            }
-            ),
-            dcc.Input(id='university-id-input', type='text', placeholder='Enter University ID'),
+                     style={
+                         'textAlign': 'center',
+                         'color': '#7FDBFF'
+                     }
+                     ),
+            dcc.Input(id='university-id-input', type='text',
+                      placeholder='Enter University ID'),
             html.Button('Add University', id='add-button', n_clicks=0),
             html.Button('Delete University', id='delete-button', n_clicks=0),
             html.Div(id='output-message'),
@@ -196,14 +229,16 @@ app.layout = html.Div(children=[
         # Widget 7
         html.Div(children=[
             html.Div(children='''Notepad for My Favorite Papers''',
-            style={
-            'textAlign': 'center',
-            'color': '#7FDBFF'
-            }
-            ),
-            dcc.Input(id='publication-id-input', type='text', placeholder='Enter Publication ID'),
+                     style={
+                         'textAlign': 'center',
+                         'color': '#7FDBFF'
+                     }
+                     ),
+            dcc.Input(id='publication-id-input', type='text',
+                      placeholder='Enter Publication ID'),
             html.Button('Add Publication', id='add-button-2', n_clicks=0),
-            html.Button('Delete Publication', id='delete-button-2', n_clicks=0),
+            html.Button('Delete Publication',
+                        id='delete-button-2', n_clicks=0),
             html.Div(id='output-message-2'),
             html.H2("Favorite Papers List"),
             html.Table(id='favorite-papers-table')
@@ -228,13 +263,14 @@ def update_professor_list(selected_keyword, selected_university):
         return html.Ul([html.Li(prof[0]) for prof in professor_results])
     return "No professors available for the selected keyword."
 
+
 @app.callback(
     Output('university-ranking-chart', 'figure'),
     Input('ranking-dropdown', 'value')
 )
 def update_unversity_ranking(keyword):
     df = mongodb.fetch_top_unversity_by_keyword(keyword, 10)
-    
+
     if df.empty:
         fig = px.bar(
             title=f'No relevant publications found for keyword: {keyword}'
@@ -244,24 +280,61 @@ def update_unversity_ranking(keyword):
             df,
             x='UniversityName(UniversityId)',
             y='KeyPublicationCount',
-            title=f'Key Publication Count for "{keyword.upper()}" by University',
-            labels={'UniversityName(UniversityId)': 'UniversityName(UniversityId)', 'KeyPublicationCount': 'KeyPublicationCount'},
+            title=f'Key Publication Count for "{
+                keyword.upper()}" by University',
+            labels={'UniversityName(UniversityId)': 'UniversityName(UniversityId)',
+                    'KeyPublicationCount': 'KeyPublicationCount'},
             text='KeyPublicationCount'
         )
         fig.update_layout(
             xaxis_tickangle=-65,
-            xaxis={'categoryorder':'total descending'},
+            xaxis={'categoryorder': 'total descending'},
             margin={'l': 40, 'b': 150, 't': 40, 'r': 0},
             height=600
         )
     return fig
 
 
+@app.callback(
+    [Output('most-cited-publications-chart', 'figure'),
+        Output('publications-table', 'data')],
+    Input('widget5-subject-dropdown', 'value')
+)
+def update_most_cited_publications(keyword):
+    df = neo4jdb.fetch_most_cited_publications(keyword, 10)
+
+    if df.empty:
+        fig = px.bar(
+            title=f'No relevant publications found for keyword: {keyword}'
+        )
+        table_data = []
+    else:
+        df['id'] = df['id'].str.replace('p', '')
+
+        fig = px.bar(
+            df,
+            x='citations',
+            y='id',
+            title=f'Most Cited Publications for "{keyword.title()}"',
+            labels={'id': 'Publication ID',
+                    'citations': 'Number of Citations'},
+            text='citations'
+        )
+
+        fig.update_layout(
+            yaxis={'categoryorder': 'total ascending'},
+            margin={'l': 40, 'b': 50, 't': 40, 'r': 0},
+            height=600
+        )
+        table_data = df[['id', 'title']].to_dict('records')
+    return fig, table_data
+
 # Callback for adding and deleting favorite universities
 def get_favorite_universities():
     query = "SELECT * FROM favorite_university"
     results = db.fetch_results(query)
     return results
+
 
 @app.callback(
     Output('output-message', 'children'),
@@ -308,10 +381,13 @@ def update_favorite_universities(add_clicks, delete_clicks, university_id):
     return message, generate_table(get_favorite_universities(), flag="University")
 
 # Callback for adding and deleting favorite papers
+
+
 def get_favorite_papers():
     query = "SELECT * FROM favorite_paper"
     results = db.fetch_results(query)
     return results
+
 
 @app.callback(
     Output('output-message-2', 'children'),
@@ -357,22 +433,30 @@ def update_favorite_papers(add_clicks, delete_clicks, publication_id):
 
     return message, generate_table(get_favorite_papers(), flag="Paper")
 
+
 def generate_table(data, flag="University"):
     if flag == "University":
-        header = html.Tr([html.Th("University ID"), html.Th("University Name")])
+        header = html.Tr(
+            [html.Th("University ID"), html.Th("University Name")])
         if not data:
             return header
-        rows = [html.Tr([html.Td(record[0]), html.Td(record[1])]) for record in data]
-        table = html.Table([header] + rows, id='favorite-universities-table', style={'width': '100%'})
+        rows = [html.Tr([html.Td(record[0]), html.Td(record[1])])
+                for record in data]
+        table = html.Table(
+            [header] + rows, id='favorite-universities-table', style={'width': '100%'})
     elif flag == "Paper":
-        header = html.Tr([html.Th("Publication ID"), html.Th("Title"), html.Th("Year"), html.Th("Citations")])
+        header = html.Tr([html.Th("Publication ID"), html.Th(
+            "Title"), html.Th("Year"), html.Th("Citations")])
         if not data:
             return header
-        rows = [html.Tr([html.Td(record[0]), html.Td(record[1]), html.Td(record[2]), html.Td(record[3])]) for record in data]
-        table = html.Table([header] + rows, id='favorite-papers-table', style={'width': '100%'})
+        rows = [html.Tr([html.Td(record[0]), html.Td(record[1]), html.Td(
+            record[2]), html.Td(record[3])]) for record in data]
+        table = html.Table(
+            [header] + rows, id='favorite-papers-table', style={'width': '100%'})
     return table
 
-def find_free_port(start_port=8050): # Finds the free port
+
+def find_free_port(start_port=8050):  # Finds the free port
     port = start_port
     while True:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -387,3 +471,4 @@ if __name__ == '__main__':
 # Ensure the database disconnects when the app stops running
 atexit.register(db.disconnect)
 atexit.register(mongodb.disconnect)
+atexit.register(neo4jdb.disconnect)
