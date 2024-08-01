@@ -1,20 +1,16 @@
-# Dashboard for AI Research
 ## Yeseong Jeon and Ning Liu
 
-## Purpose
-**Application Scenario**: Describe the scenario your application is addressing.
-**Target Users**: Who will be using this application? Mention specific user groups or demographics.
-**Objectives**: What are the primary goals of your application? List the key objectives you aim to achieve.
+## Title: Explore AI in the Academic World
+
+## Purpose: We can create a comprehensive dashboard tailored for computer science graduate students to help them select universities for their applications based on their research interests in AI, defined by five key-subjects (Artificial intelligence, Computer vision, Natural language processing, Machine learning, Information retrieval).
 
 ## Demo
 [Link to Video Demo](#)  
-*Provide a brief description of what the demo includes.*
 
-## Installation
-**Instructions**:
-1. Step-by-step instructions on how to install the application.
-2. Prerequisites (e.g., software dependencies).
-3. Any configurations required.
+## Installation:
+    1. Clone the repository: git clone https://github.com/CS411DSO-SU24/Ning_Yeseong.git
+    2. Run the application: python app.py
+    3. Copy and paste the linked that generated in your terminal (e.g. http://127.0.0.1:80**/)
 
 ## Usage
 **How to Use the Application**:
