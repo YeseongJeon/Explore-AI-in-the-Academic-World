@@ -30,6 +30,7 @@ db.create_procedure_favorite_university()
 db.create_procedure_favorite_paper()
 db.recreate_favorite_university_table()
 db.recreate_favorite_paper_table()
+db.create_view_faulty_details()
 
 widget1_results = db.fetch_widget1_results()
 widget2_university_results = db.fetch_widget2_universities()
@@ -128,18 +129,15 @@ app.layout = html.Div(children=[
         ], style={'flex': 1, 'padding': '10px'}),
 
         html.Div(children=[  # Widget 3
-            html.Div(children='''Show the trend of keywords related to AI over the years''',  # title for the widget 3
+            html.Div(children='''Spotlight on Professor with Contact Details''',  # title for the widget 3
                      style={
                          'textAlign': 'center',
                          'color': '#7FDBFF'
                      }
                      ),
-
-            dcc.Graph(  # graph for the widget 3
-                id='example-graph-3',
-                figure=widget1_fig,
-                style={'width': '80%', 'margin': '0 auto'}
-            )
+            dcc.Input(id='prof-name', type='text', placeholder='Enter Professor Name'),
+            html.Button('Submit', id='submit-button', n_clicks=0),
+            html.Div(id='output-container')
         ], style={'flex': 1, 'padding': '10px'})
 
     ], style={'display': 'flex', 'flexDirection': 'row'}),
@@ -204,8 +202,8 @@ app.layout = html.Div(children=[
     ], style={'display': 'flex', 'flexDirection': 'row'}),
 
 
-    # --------------------------------- Container for widget 6 & widget 7 (Need to be modified) ---------------------------------
-    html.Div(children=[
+#--------------------------------- Container for widget 6 & widget 7 ---------------------------------
+    html.Div(children=[ 
         # Widget 6
         html.Div(children=[
             html.Div(children='''Notepad for My Favorite Universities''',
@@ -277,8 +275,7 @@ def update_unversity_ranking(keyword):
             df,
             x='UniversityName(UniversityId)',
             y='KeyPublicationCount',
-            title=f'Key Publication Count for "{
-                keyword.upper()}" by University',
+            title=f'Key Publication Count for "{keyword.upper()}" by University',
             labels={'UniversityName(UniversityId)': 'UniversityName(UniversityId)',
                     'KeyPublicationCount': 'KeyPublicationCount'},
             text='KeyPublicationCount'
@@ -357,31 +354,35 @@ def update_favorite_universities(add_clicks, delete_clicks, university_id):
                 FROM university
                 WHERE id = {university_id};
             """
+            db.connect()
+            db.connection.start_transaction()
             try:
-                db.connect()
                 db.execute_query(query)
+                db.connection.commit()
                 message = "University added successfully."
             except Error as e:
-                message = f"Error: {e}"
+                message = f"Transaction rolled back due to Error: {e}."
+                db.connection.rollback()
         elif button_id == 'delete-button':
             query = f"""
                 DELETE FROM favorite_university
-                WHERE id = '{university_id}'
+                WHERE id = '{university_id}';
             """
+            db.connect()
+            db.connection.start_transaction()
             try:
-                db.connect()
                 db.execute_query(query)
+                db.connection.commit()
                 message = "University deleted successfully."
             except Error as e:
-                message = f"Error: {e}"
+                message = f"Transaction rolled back due to Error: {e}."
+                db.connection.rollback()
     else:
         message = "Please enter a University ID."
 
     return message, generate_table(get_favorite_universities(), flag="University")
 
 # Callback for adding and deleting favorite papers
-
-
 def get_favorite_papers():
     query = "SELECT * FROM favorite_paper"
     results = db.fetch_results(query)
@@ -410,23 +411,29 @@ def update_favorite_papers(add_clicks, delete_clicks, publication_id):
                 FROM publication
                 WHERE id = {publication_id};
             """
+            db.connect()
+            db.connection.start_transaction()
             try:
-                db.connect()
                 db.execute_query(query)
+                db.connection.commit()
                 message = "Publication added successfully."
             except Error as e:
-                message = f"Error: {e}"
+                message = f"Transaction rolled back due to Error: {e}."
+                db.connection.rollback()
         elif button_id == 'delete-button-2':
             query = f"""
                 DELETE FROM favorite_paper
                 WHERE id = '{publication_id}'
             """
+            db.connect()
+            db.connection.start_transaction()
             try:
-                db.connect()
                 db.execute_query(query)
+                db.connection.commit()
                 message = "Publication deleted successfully."
             except Error as e:
-                message = f"Error: {e}"
+                message = f"Transaction rolled back due to Error: {e}."
+                db.connection.rollback()
     else:
         message = "Please enter a Publication ID."
 
@@ -454,8 +461,53 @@ def generate_table(data, flag="University"):
             [header] + rows, id='favorite-papers-table', style={'width': '100%'})
     return table
 
+@app.callback(
+    Output('output-container', 'children'),
+    [Input('submit-button', 'n_clicks'),
+    State('prof-name', 'value')]
+)
+def update_professor_highlight(n_clicks, value):
+    if n_clicks > 0:
+        query = f'''
+            SELECT *
+            FROM faculty_details
+            WHERE Name = '{value}' AND PublicationYear > 2010
+            ORDER BY Citations DESC
+            LIMIT 1;;
+        '''
+        db.connect()
+        results = pd.DataFrame(db.fetch_results(query), columns=["Name", 
+                                                                 "Position", 
+                                                                 "ResearchInterests", 
+                                                                 "Email", 
+                                                                 "Phone", 
+                                                                 "University",
+                                                                 "PublicationId",
+                                                                 "PublicationTitle",
+                                                                 "PublicationYear",
+                                                                 "Citations"])
+        if not results.empty:
+            details = results.iloc[0]
+            return html.Div([
+                html.H5('You can contact the professor using the following information.'),
+                html.Table([
+                    html.Tr([html.Td("Name:"), html.Td(details["Name"])]),
+                    html.Tr([html.Td("Position:"), html.Td(details["Position"])]),
+                    html.Tr([html.Td("Research Interests:"), html.Td(details["ResearchInterests"])]),
+                    html.Tr([html.Td("Email:"), html.Td(details["Email"])]),
+                    html.Tr([html.Td("Phone:"), html.Td(details["Phone"])]),
+                    html.Tr([html.Td("University:"), html.Td(details["University"])]),
+                    html.Tr([html.Td("PublicationId:"), html.Td(details["PublicationId"])]),
+                    html.Tr([html.Td("Title:"), html.Td(details["PublicationTitle"])]),
+                    html.Tr([html.Td("PublicationYear:"), html.Td(details["PublicationYear"])]),
+                    html.Tr([html.Td("Citations:"), html.Td(details["Citations"])])
+                ])
+            ])
+        else:
+            return 'No results found.'
+    return ''
 
-def find_free_port(start_port=8050):  # Finds the free port
+def find_free_port(start_port=8050): # Finds the free port
     port = start_port
     while True:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:

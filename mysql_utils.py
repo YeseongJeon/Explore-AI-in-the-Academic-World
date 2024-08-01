@@ -103,6 +103,31 @@ class MySQLClient:
             print("Stored procedure executed successfully")
         except Error as e:
             print(f"Error: {e}")
+
+    def create_view_faulty_details(self):
+        create_view_query = """
+        CREATE OR REPLACE VIEW faculty_details AS
+        SELECT 
+            f.name AS Name,
+            f.position AS Position,
+            f.research_interest AS ResearchInterests,
+            f.email AS Email,
+            f.phone AS Phone,
+            u.name AS UniversityName,
+            p.id AS PublicationId,
+            p.title AS PublicationTitle,
+            p.year AS PublicationYear,
+            p.num_citations AS Citations
+        FROM
+            faculty AS f
+                JOIN
+            university AS u ON f.university_id = u.id
+                JOIN
+            faculty_publication AS fp ON fp.faculty_id = f.id
+                JOIN
+            publication AS p ON p.id = fp.publication_id;
+        """
+        self.execute_query(create_view_query)
     
     def fetch_widget1_results(self):
         query = '''

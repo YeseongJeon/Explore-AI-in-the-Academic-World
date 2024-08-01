@@ -2,3 +2,5 @@ __pycache__/
 .venv/
 env/
 venv/
+__pycache__/mysql_utils.cpython-311.pyc
+__pycache__/mysql_utils.cpython-312.pyc
