@@ -38,8 +38,7 @@ db.disconnect()
 # DataFrame for widget 1 graph
 widget1_df = pd.DataFrame(widget1_results, columns=["Keywords", "Count"])
 
-widget1_fig = px.bar(widget1_df, x="Keywords", y="Count",
-                     color="Keywords", barmode="group")
+widget1_fig = px.pie(widget1_df, values='Count', names='Keywords')
 
 widget1_fig.update_layout(
     autosize=True,
@@ -51,8 +50,7 @@ widget1_fig.update_layout(
 widget2_dropdown_options = [  # dropdown menu values for widget 2
     {"label": "Artificial intelligence", "value": "Artificial intelligence"},
     {"label": "Computer vision", "value": "Computer vision"},
-    {"label": "Natural language processing",
-        "value": "Natural language processing"},
+    {"label": "Natural language processing", "value": "Natural language processing"},
     {"label": "Machine learning", "value": "Machine learning"},
     {"label": "Information retrieval", "value": "Information retrieval"},
 ]
@@ -64,8 +62,7 @@ widget2_university_dropdown_options = [  # dropdown menu values for universities
 widget5_dropdown_options = [  # dropdown menu values for widget 5
     {"label": "Artificial intelligence", "value": "artificial intelligence"},
     {"label": "Computer vision", "value": "computer vision"},
-    {"label": "Natural language processing",
-        "value": "natural language processing"},
+    {"label": "Natural language processing", "value": "natural language processing"},
     {"label": "Machine learning", "value": "machine learning"},
     {"label": "Information retrieval", "value": "information retrieval"},
 ]
@@ -330,6 +327,8 @@ def update_most_cited_publications(keyword):
     return fig, table_data
 
 # Callback for adding and deleting favorite universities
+
+
 def get_favorite_universities():
     query = "SELECT * FROM favorite_university"
     results = db.fetch_results(query)
