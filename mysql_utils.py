@@ -169,7 +169,7 @@ class MySQLClient:
             WHERE k.name = "{keyword}" AND u.name = "{university}"
             GROUP BY f.name
             ORDER BY KRC DESC
-            LIMIT 5;
+            LIMIT 15;
         '''
         return self.fetch_results(query)
     
