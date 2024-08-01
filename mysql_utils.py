@@ -113,11 +113,19 @@ class MySQLClient:
             f.research_interest AS ResearchInterests,
             f.email AS Email,
             f.phone AS Phone,
-            u.name AS UniversityName
+            u.name AS UniversityName,
+            p.id AS PublicationId,
+            p.title AS PublicationTitle,
+            p.year AS PublicationYear,
+            p.num_citations AS Citations
         FROM
             faculty AS f
-        JOIN
-            university AS u ON f.university_id = u.id;
+                JOIN
+            university AS u ON f.university_id = u.id
+                JOIN
+            faculty_publication AS fp ON fp.faculty_id = f.id
+                JOIN
+            publication AS p ON p.id = fp.publication_id;
         """
         self.execute_query(create_view_query)
     
