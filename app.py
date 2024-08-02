@@ -11,24 +11,33 @@ import socket
 
 app = Dash(__name__)
 
+# Connect to the Neo4j database
 neo4jdb = Neo4jClient(uri="bolt://localhost:7687",
-                      user="neo4j", password="ilovecs411")
+                      user="neo4j", 
+                      password="ilovecs411")
 neo4jdb.connect()
-
-mongodb = MongoDBClient(host="127.0.0.1", port=27017,
+# Connect to the MongoDB database
+mongodb = MongoDBClient(host="127.0.0.1", 
+                        port=27017,
                         database_name="academicworld")
 mongodb.connect()
-
-db = MySQLClient(host="127.0.0.1", user="root",
-                 password="test_root", database="academicworld")
+# Connect to the MySQL database
+db = MySQLClient(host="127.0.0.1", 
+                 user="root",
+                 password="test_root", 
+                 database="academicworld")
 db.connect()
 
+
+# Create stored procedures and views
 db.create_procedure_favorite_university()
 db.create_procedure_favorite_paper()
 db.recreate_favorite_university_table()
 db.recreate_favorite_paper_table()
 db.create_view_faulty_details()
 
+
+# Fetch data from the database for widget 1
 widget1_results = db.fetch_widget1_results()
 widget2_university_results = db.fetch_widget2_universities()
 db.disconnect()
@@ -65,9 +74,11 @@ widget5_dropdown_options = [  # dropdown menu values for widget 5
     {"label": "Information retrieval", "value": "information retrieval"},
 ]
 
+
+#
 app.layout = html.Div(children=[
     # -------------------------------------------------------------- Header ----------------------------------------------------------------
-    html.H1(children='Explore AI in Academic World',
+    html.H1(children='Explore AI in the Academic World - A Dashboard for Grad School Applicants',  # title for the dashboard
             style={
                 'textAlign': 'center',
                 'color': '#7FDBFF'
@@ -241,7 +252,7 @@ app.layout = html.Div(children=[
 ])
 # ---------------------------------------------------------- CallBacks -----------------------------------------------------------------
 
-
+# Callback for updating the professor list based on the selected keyword and university
 @app.callback(
     Output('professor-list', 'children'),
     [Input('subject-dropdown', 'value'),
@@ -255,7 +266,7 @@ def update_professor_list(selected_keyword, selected_university):
         return html.Ul([html.Li(prof[0]) for prof in professor_results])
     return "No professors available for the selected keyword."
 
-
+# Callback for updating the university ranking chart based on the selected keyword
 @app.callback(
     Output('university-ranking-chart', 'figure'),
     Input('ranking-dropdown', 'value')
@@ -285,7 +296,7 @@ def update_unversity_ranking(keyword):
         )
     return fig
 
-
+# Callback for updating the most cited publications chart based on the selected keyword
 @app.callback(
     [Output('most-cited-publications-chart', 'figure'),
         Output('publications-table', 'data')],
@@ -321,13 +332,10 @@ def update_most_cited_publications(keyword):
     return fig, table_data
 
 # Callback for adding and deleting favorite universities
-
-
 def get_favorite_universities():
     query = "SELECT * FROM favorite_university"
     results = db.fetch_results(query)
     return results
-
 
 @app.callback(
     Output('output-message', 'children'),
@@ -385,7 +393,6 @@ def get_favorite_papers():
     results = db.fetch_results(query)
     return results
 
-
 @app.callback(
     Output('output-message-2', 'children'),
     Output('favorite-papers-table', 'children'),
@@ -436,28 +443,23 @@ def update_favorite_papers(add_clicks, delete_clicks, publication_id):
 
     return message, generate_table(get_favorite_papers(), flag="Paper")
 
-
 def generate_table(data, flag="University"):
     if flag == "University":
         header = html.Tr(
             [html.Th("University ID"), html.Th("University Name")])
         if not data:
             return header
-        rows = [html.Tr([html.Td(record[0]), html.Td(record[1])])
-                for record in data]
-        table = html.Table(
-            [header] + rows, id='favorite-universities-table', style={'width': '100%'})
+        rows = [html.Tr([html.Td(record[0]), html.Td(record[1])]) for record in data]
+        table = html.Table([header] + rows, id='favorite-universities-table', style={'width': '100%'})
     elif flag == "Paper":
-        header = html.Tr([html.Th("Publication ID"), html.Th(
-            "Title"), html.Th("Year"), html.Th("Citations")])
+        header = html.Tr([html.Th("Publication ID"), html.Th("Title"), html.Th("Year"), html.Th("Citations")])
         if not data:
             return header
-        rows = [html.Tr([html.Td(record[0]), html.Td(record[1]), html.Td(
-            record[2]), html.Td(record[3])]) for record in data]
-        table = html.Table(
-            [header] + rows, id='favorite-papers-table', style={'width': '100%'})
+        rows = [html.Tr([html.Td(record[0]), html.Td(record[1]), html.Td(record[2]), html.Td(record[3])]) for record in data]
+        table = html.Table([header] + rows, id='favorite-papers-table', style={'width': '100%'})
     return table
 
+# Callback for updating the professor details based on the selected professor
 @app.callback(
     Output('output-container', 'children'),
     [Input('submit-button', 'n_clicks'),
@@ -504,7 +506,9 @@ def update_professor_highlight(n_clicks, value):
             return 'No results found.'
     return ''
 
-def find_free_port(start_port=8050): # Finds the free port
+
+# Function to find a free port
+def find_free_port(start_port=8050):
     port = start_port
     while True:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -512,11 +516,12 @@ def find_free_port(start_port=8050): # Finds the free port
                 return port
             port += 1
 
-
-if __name__ == '__main__':
-    app.run_server(debug=True, port=find_free_port())
-
 # Ensure the database disconnects when the app stops running
 atexit.register(db.disconnect)
 atexit.register(mongodb.disconnect)
 atexit.register(neo4jdb.disconnect)
+
+if __name__ == '__main__':
+    app.run_server(debug=True, port=find_free_port())
+
+
