@@ -104,7 +104,7 @@ app.layout = html.Div(children=[
         ], style={'flex': 1, 'padding': '10px'}),
 
         html.Div(children=[  # Widget 2
-            html.Div(children='''Top 5 professors that are relevant to the keyword related to “AI”''',  # title for the widget 2
+            html.Div(children='''Top 15 professors that are relevant to the keyword related to “AI”''',  # title for the widget 2
                      style={
                          'textAlign': 'center',
                          'color': '#7FDBFF'

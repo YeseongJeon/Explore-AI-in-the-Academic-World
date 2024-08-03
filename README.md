@@ -6,7 +6,7 @@
 We have created a comprehensive dashboard tailored for computer science graduate students to help them select universities for their applications based on their research interests in AI, defined by five key subjects: Artificial Intelligence, Computer Vision, Natural Language Processing, Machine Learning, and Information Retrieval. <span style="color:red;">(R4, R5)</span>.
 
 ## Demo
-[Link to Video Demo](#)  
+[https://mediaspace.illinois.edu/media/t/1_xservc6z](#)  
 
 ## Installation:
 1. Clone the repository: `git clone https://github.com/CS411DSO-SU24/Ning_Yeseong.git`
