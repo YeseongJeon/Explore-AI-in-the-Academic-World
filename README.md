@@ -50,8 +50,5 @@ Our project leverages multiple database techniques in MySQL to achieve an effici
 - **Transactions**: Employed in Widgets 6 and 7 to ensure data integrity during insertions and deletions, making user interactions reliable. <span style="color:red;">(R14)</span>
 - **Stored Procedures**: Implemented to manage temporary tables for tracking favorite universities and papers, ensuring they are recreated each session for a fresh start. <span style="color:red;">(R15)</span>
 
-## Extra-Credit Capabilities
-Not implemented.
-
 ## Contributions
 We contributed equally to all aspects of the project, including design, implementation, testing, and documentation, with each person spending approximately 20 hours.
